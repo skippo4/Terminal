@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Terminal Removal Form</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root {
+  --moniepoint-blue: #0A66C2;
+  --danger-red: #e74c3c;
+  --success-green: #28a745;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f1f9ff;
+  margin: 0;
+}
+
+.form-container {
+  max-width: 480px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+.form-header {
+  background: var(--moniepoint-blue);
+  color: #fff;
+  text-align: center;
+  padding: 25px 20px;
+}
+
+.logo {
+  width: 70px;
+  margin-bottom: 10px;
+}
+
+form {
+  padding: 20px;
+}
+
+input[type="email"],
+input[type="text"] {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.serial-list {
+  margin-bottom: 12px;
+}
+
+.serial-card {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  background: #f9f9f9;
+  border: 1px solid #ccc;
+  align-items: center;
+}
+
+.serial-card input {
+  flex: 1;
+}
+
+.removeSerial {
+  background: var(--danger-red);
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.removeSerial:hover {
+  background: #c0392b;
+}
+
+.add-btn {
+  background: #e6f0ff;
+  color: var(--moniepoint-blue);
+  border: 1px solid var(--moniepoint-blue);
+  padding: 10px;
+  width: 100%;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  font-weight: bold;
+}
+
+.checkbox-group {
+  display: flex;
+  gap: 8px;
+  font-size: 14px;
+  margin-bottom: 15px;
+  align-items: center;
+}
+
+button[type="submit"] {
+  width: 100%;
+  padding: 12px;
+  background: var(--moniepoint-blue);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.success {
+  display: none;
+  padding: 20px;
+  text-align: center;
+  font-weight: bold;
+  color: var(--success-green);
+}
+</style>
+</head>
+<body>
+
+<div class="form-container">
+  <div class="form-header">
+    <img src="log.png" class="logo">
+    <h2>Terminal Removal Request</h2>
+    <p>Complete the Form</p>
+  </div>
+
+  <form id="removalForm">
+
+    <input type="email" id="brmEmail" placeholder="BRM Official Email" required>
+    <input type="text" id="brmName" placeholder="BRM Name" readonly>
+
+    <div class="serial-list" id="serialContainer">
+      <div class="serial-card">
+        <input type="text" class="serial" placeholder="Serial Number" required>
+        <input type="text" class="repair" placeholder="Sub Repair Code" required>
+        <button type="button" class="removeSerial">X</button>
+      </div>
+    </div>
+
+    <button type="button" class="add-btn" id="addSerialBtn">➕ Add Another Terminal</button>
+
+    <div class="checkbox-group">
+      <input type="checkbox" id="agree" required>
+      <label for="agree">
+        I agree that every terminal/terminals is/are with battery/batteries
+      </label>
+    </div>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <div class="success" id="successMsg">
+    ✅ Submission successful! Redirecting…
+  </div>
+</div>
+
+<script>
+// Registered BRM Emails
+const brmDirectory = {
+  "john@company.com": "John Mary",
+  "chris@company.com": "Chris Cyprian"
+};
+
+const brmEmail = document.getElementById("brmEmail");
+const brmName = document.getElementById("brmName");
+const serialContainer = document.getElementById("serialContainer");
+const addSerialBtn = document.getElementById("addSerialBtn");
+const removalForm = document.getElementById("removalForm");
+const successMsg = document.getElementById("successMsg");
+
+// Auto-fill BRM name
+brmEmail.addEventListener("input", function() {
+  brmName.value = brmDirectory[this.value.toLowerCase()] || "";
+});
+
+// Add new serial card
+addSerialBtn.addEventListener("click", function() {
+  const div = document.createElement("div");
+  div.className = "serial-card";
+  div.innerHTML = `
+    <input type="text" class="serial" placeholder="Serial Number" required>
+    <input type="text" class="repair" placeholder="Sub Repair Code" required>
+    <button type="button" class="removeSerial">X</button>
+  `;
+  serialContainer.appendChild(div);
+  div.scrollIntoView({behavior: "smooth"});
+});
+
+// Remove serial card
+serialContainer.addEventListener("click", function(e) {
+  if(e.target.classList.contains("removeSerial")) {
+    e.target.parentElement.remove();
+  }
+});
+
+// Handle form submission
+removalForm.addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  if(!brmDirectory[brmEmail.value.toLowerCase()]){
+    alert("Please enter a registered BRM email.");
+    return;
+  }
+
+  const serials = document.querySelectorAll(".serial");
+  const repairs = document.querySelectorAll(".repair");
+
+  let terminalList = "";
+  serials.forEach((s,i) => {
+    terminalList += `• Serial: ${s.value}\n  Repair Code: ${repairs[i].value}\n\n`;
+  });
+
+  // Show success message
+  removalForm.style.display = "none";
+  successMsg.style.display = "block";
+
+  // Send to Google Sheet (replace YOUR_WEB_APP_URL)
+  const dataToSend = {
+    brmEmail: brmEmail.value,
+    brmName: brmName.value,
+    terminals: Array.from(serials).map((s, i) => ({
+      serial: s.value,
+      repairCode: repairs[i].value
+    })),
+    batteryConfirmed: true
+  };
+
+  fetch("https://docs.google.com/forms/d/1yKoRKlRYbeAUc-qlq1zzQ5cSSOCw0jDBP3ukUNVWsnA/edit#responses", {
+    method: "POST",
+    body: JSON.stringify(dataToSend)
+  });
+
+  // WhatsApp message
+  const whatsappText = `
+TERMINAL REMOVAL REQUEST
+
+BRM Name: ${brmName.value}
+BRM Email: ${brmEmail.value}
+
+TERMINALS:
+${terminalList}
+
+Battery Confirmation: YES
+`;
+
+  setTimeout(() => {
+    window.open("https://chat.whatsapp.com/JQcppFDMAtG5W2hrPjjeG8", "_blank");
+    removalForm.reset();
+    brmName.value = "";
+    serialContainer.innerHTML = `
+      <div class="serial-card">
+        <input type="text" class="serial" placeholder="Serial Number" required>
+        <input type="text" class="repair" placeholder="Sub Repair Code" required>
+        <button type="button" class="removeSerial">X</button>
+      </div>
+    `;
+    removalForm.style.display = "block";
+    successMsg.style.display = "none";
+  }, 2000);
+});
+</script>
+</body>
+</html>
