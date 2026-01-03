@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>Terminal Removal Form</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 :root {
   --moniepoint-blue: #0A66C2;
@@ -52,10 +53,6 @@ input[type="text"] {
   font-size: 14px;
 }
 
-.serial-list {
-  margin-bottom: 12px;
-}
-
 .serial-card {
   display: flex;
   gap: 8px;
@@ -78,10 +75,6 @@ input[type="text"] {
   padding: 6px 10px;
   border-radius: 6px;
   cursor: pointer;
-}
-
-.removeSerial:hover {
-  background: #c0392b;
 }
 
 .add-btn {
@@ -124,6 +117,7 @@ button[type="submit"] {
 }
 </style>
 </head>
+
 <body>
 
 <div class="form-container">
@@ -137,7 +131,7 @@ button[type="submit"] {
     <input type="email" id="brmEmail" placeholder="BRM Official Email" required>
     <input type="text" id="brmName" placeholder="BRM Name" readonly>
 
-    <div class="serial-list" id="serialContainer">
+    <div id="serialContainer">
       <div class="serial-card">
         <input type="text" class="serial" placeholder="Serial Number" required>
         <input type="text" class="repair" placeholder="Sub Repair Code" required>
@@ -163,10 +157,26 @@ button[type="submit"] {
 </div>
 
 <script>
-// Registered BRM Emails
 const brmDirectory = {
   "john@company.com": "John Mary",
-  "chris@company.com": "Chris Cyprian"
+  "chris@company.com": "Chris Cyprian",
+  "opeyemi.obafemi@moniepoint.com": "Obafemi Opeyemi Adoga",
+  "ismaila.gulloma@moniepoint.com": "GULLOMA ISMAILA MUSA",
+  "mohammed.tukur@moniepoint.com": "MOHAMMED TUKUR",
+  "ejimofor.jibeze@moniepoint.com": "JIBEZE EJIMOFOR MICHAEL",
+  "kizito.ugwa@moniepoint.com": "UGWA KIZITO KENNEDY",
+  "grace.ekwere@moniepoint.com": "EKWERE GRACE SIMEON",
+  "cyprian.christopher@moniepoint.com": "CHRISTOPHER CYPRIAN ISIOMA",
+  "alfred.edimeh@moniepoint.com": "EDIMEH ALFRED MUSA",
+  "saminu.usman@moniepoint.com": "USMAN SAMINU",
+  "taofeek.suleiman@moniepoint.com": "SULEIMAN TAOFEEK",
+  "favour.nwobodo@moniepoint.com": "NWOBODO FAVOUR ANNABEL",
+  "ridwan.abiola@moniepoint.com": "AWORINDE RIDWAN ABIOLA",
+  "saidu.bala@moniepoint.com": "Haruna Habibu",
+  "jibril.abdullahi@moniepoint.com": "ABDULLAHI JIBRIL",
+  "godswill.charles@moniepoint.com": "Charles Godswill Francis",
+  "rosemary.john@moniepoint.com": "JOHN Rosemary",
+  "kabiru.adamu@moniepoint.com": "BALA Abdullahi"
 };
 
 const brmEmail = document.getElementById("brmEmail");
@@ -176,13 +186,11 @@ const addSerialBtn = document.getElementById("addSerialBtn");
 const removalForm = document.getElementById("removalForm");
 const successMsg = document.getElementById("successMsg");
 
-// Auto-fill BRM name
-brmEmail.addEventListener("input", function() {
-  brmName.value = brmDirectory[this.value.toLowerCase()] || "";
+brmEmail.addEventListener("input", () => {
+  brmName.value = brmDirectory[brmEmail.value.toLowerCase()] || "";
 });
 
-// Add new serial card
-addSerialBtn.addEventListener("click", function() {
+addSerialBtn.addEventListener("click", () => {
   const div = document.createElement("div");
   div.className = "serial-card";
   div.innerHTML = `
@@ -191,22 +199,21 @@ addSerialBtn.addEventListener("click", function() {
     <button type="button" class="removeSerial">X</button>
   `;
   serialContainer.appendChild(div);
-  div.scrollIntoView({behavior: "smooth"});
 });
 
-// Remove serial card
-serialContainer.addEventListener("click", function(e) {
-  if(e.target.classList.contains("removeSerial")) {
-    e.target.parentElement.remove();
+serialContainer.addEventListener("click", e => {
+  if (e.target.classList.contains("removeSerial")) {
+    if (document.querySelectorAll(".serial").length > 1) {
+      e.target.parentElement.remove();
+    }
   }
 });
 
-// Handle form submission
-removalForm.addEventListener("submit", function(e) {
+removalForm.addEventListener("submit", e => {
   e.preventDefault();
 
   const email = brmEmail.value.toLowerCase();
-  if(!brmDirectory[email]){
+  if (!brmDirectory[email]) {
     alert("Please enter a registered BRM email.");
     return;
   }
@@ -214,21 +221,11 @@ removalForm.addEventListener("submit", function(e) {
   const serials = document.querySelectorAll(".serial");
   const repairs = document.querySelectorAll(".repair");
 
-  if(serials.length === 0){
-    alert("Please add at least one terminal.");
-    return;
-  }
-
   let terminalList = "";
-  serials.forEach((s,i) => {
+  serials.forEach((s, i) => {
     terminalList += `• Serial: ${s.value}\n  Repair Code: ${repairs[i].value}\n\n`;
   });
 
-  // Show success message
-  removalForm.style.display = "none";
-  successMsg.style.display = "block";
-
-  // Prepare data for Google Sheets
   const dataToSend = {
     brmEmail: email,
     brmName: brmName.value,
@@ -239,13 +236,15 @@ removalForm.addEventListener("submit", function(e) {
     batteryConfirmed: document.getElementById("agree").checked
   };
 
-  // Send to Google Apps Script Web App (replace YOUR_WEB_APP_URL)
-  fetch("httphttps://script.google.com/macros/s/AKfycbwHv9Y7P0o5KMKGjGiXNV-h24U-Ti41wHDWLdbD6GFlNr8V9Nm8uUNtnRgNy97R8LeJ/exec", {
+  fetch("https://script.google.com/macros/s/AKfycbwHv9Y7P0o5KMKGjGiXNV-h24U-Ti41wHDWLdbD6GFlNr8V9Nm8uUNtnRgNy97R8LeJ/exec", {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(dataToSend)
   });
 
-  // WhatsApp message (send to individual number)
+  removalForm.style.display = "none";
+  successMsg.style.display = "block";
+
   const whatsappText = encodeURIComponent(`
 TERMINAL REMOVAL REQUEST
 
@@ -259,8 +258,7 @@ Battery Confirmation: YES
 `);
 
   setTimeout(() => {
-    window.open(`https://wa.me/2348135341447?text=${whatsappText}`, "_blank"); // replace with actual number
-    // Reset form
+    window.open(`https://wa.me/2348135341447?text=${whatsappText}`, "_blank");
     removalForm.reset();
     brmName.value = "";
     serialContainer.innerHTML = `
@@ -275,5 +273,6 @@ Battery Confirmation: YES
   }, 2000);
 });
 </script>
+
 </body>
 </html>
