@@ -134,7 +134,7 @@ button[type="submit"] {
     <div id="serialContainer">
       <div class="serial-card">
         <input type="text" class="serial" placeholder="Serial Number" required>
-        <input type="text" class="repair" placeholder="Sub Repair Code" required>
+        <input type="text" class="repair" placeholder="Repair Code" required>
         <button type="button" class="removeSerial">X</button>
       </div>
     </div>
@@ -158,8 +158,6 @@ button[type="submit"] {
 
 <script>
 const brmDirectory = {
-  "john@company.com": "John Mary",
-  "chris@company.com": "Chris Cyprian",
   "opeyemi.obafemi@moniepoint.com": "Obafemi Opeyemi Adoga",
   "ismaila.gulloma@moniepoint.com": "GULLOMA ISMAILA MUSA",
   "mohammed.tukur@moniepoint.com": "MOHAMMED TUKUR",
@@ -236,7 +234,7 @@ removalForm.addEventListener("submit", e => {
     batteryConfirmed: document.getElementById("agree").checked
   };
 
-  fetch("https://script.google.com/macros/s/AKfycbwHv9Y7P0o5KMKGjGiXNV-h24U-Ti41wHDWLdbD6GFlNr8V9Nm8uUNtnRgNy97R8LeJ/exec", {
+  fetch("https://script.google.com/macros/s/AKfycbx-M4OLqycVHbFrM6MDD1REm8nKzrhLmEhNR5flMGHpFGoYgSXbS12u2ceENbSc5K3a/exec", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(dataToSend)
