@@ -22,9 +22,9 @@ body {
   max-width: 480px;
   margin: 40px auto;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.12);
 }
 
 .form-header {
@@ -108,12 +108,44 @@ button[type="submit"] {
   cursor: pointer;
 }
 
+/* ===== SUCCESS ANIMATION ===== */
 .success {
   display: none;
-  padding: 20px;
+  padding: 40px 20px;
   text-align: center;
+}
+
+.checkmark {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: var(--success-green);
+  margin: 0 auto 15px;
+  position: relative;
+  animation: pop 0.6s ease;
+}
+
+.checkmark::after {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 35px;
+  width: 18px;
+  height: 35px;
+  border: solid #fff;
+  border-width: 0 6px 6px 0;
+  transform: rotate(45deg);
+}
+
+.success p {
+  font-size: 18px;
   font-weight: bold;
   color: var(--success-green);
+}
+
+@keyframes pop {
+  0% { transform: scale(0.3); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 </style>
 </head>
@@ -122,7 +154,7 @@ button[type="submit"] {
 
 <div class="form-container">
   <div class="form-header">
-    <img src="log.png" class="logo">
+    <img src="logo.png" class="logo" alt="Logo" onerror="this.style.display='none'">
     <h2>Terminal Removal Request</h2>
     <p>Complete the Form</p>
   </div>
@@ -148,11 +180,13 @@ button[type="submit"] {
       </label>
     </div>
 
-    <button type="submit">Submit</button>
+    <button type="submit" id="submitBtn">Submit</button>
   </form>
 
   <div class="success" id="successMsg">
-    ✅ Submission successful! Redirecting…
+    <div class="checkmark"></div>
+    <p>Submission Successful</p>
+    <small>Redirecting to WhatsApp…</small>
   </div>
 </div>
 
@@ -177,99 +211,109 @@ const brmDirectory = {
   "kabiru.adamu@moniepoint.com": "BALA Abdullahi"
 };
 
-const brmEmail = document.getElementById("brmEmail");
-const brmName = document.getElementById("brmName");
+const form = document.getElementById("removalForm");
+const success = document.getElementById("successMsg");
 const serialContainer = document.getElementById("serialContainer");
-const addSerialBtn = document.getElementById("addSerialBtn");
-const removalForm = document.getElementById("removalForm");
-const successMsg = document.getElementById("successMsg");
+const submitBtn = document.getElementById("submitBtn");
 
 brmEmail.addEventListener("input", () => {
   brmName.value = brmDirectory[brmEmail.value.toLowerCase()] || "";
 });
 
-addSerialBtn.addEventListener("click", () => {
-  const div = document.createElement("div");
-  div.className = "serial-card";
-  div.innerHTML = `
-    <input type="text" class="serial" placeholder="Serial Number" required>
-    <input type="text" class="repair" placeholder="Sub Repair Code" required>
-    <button type="button" class="removeSerial">X</button>
-  `;
-  serialContainer.appendChild(div);
-});
+addSerialBtn.onclick = () => {
+  serialContainer.insertAdjacentHTML("beforeend", `
+    <div class="serial-card">
+      <input type="text" class="serial" placeholder="Serial Number" required>
+      <input type="text" class="repair" placeholder="Repair Code" required>
+      <button type="button" class="removeSerial">X</button>
+    </div>
+  `);
+};
 
-serialContainer.addEventListener("click", e => {
-  if (e.target.classList.contains("removeSerial")) {
-    if (document.querySelectorAll(".serial").length > 1) {
-      e.target.parentElement.remove();
-    }
+serialContainer.onclick = e => {
+  if (e.target.classList.contains("removeSerial") &&
+      document.querySelectorAll(".serial").length > 1) {
+    e.target.parentElement.remove();
   }
-});
+};
 
-removalForm.addEventListener("submit", e => {
+form.onsubmit = async e => {
   e.preventDefault();
+  submitBtn.disabled = true;
 
   const email = brmEmail.value.toLowerCase();
   if (!brmDirectory[email]) {
-    alert("Please enter a registered BRM email.");
+    alert("Invalid BRM email");
+    submitBtn.disabled = false;
     return;
   }
 
   const serials = document.querySelectorAll(".serial");
   const repairs = document.querySelectorAll(".repair");
 
-  let terminalList = "";
-  serials.forEach((s, i) => {
-    terminalList += `• Serial: ${s.value}\n  Repair Code: ${repairs[i].value}\n\n`;
-  });
+  for (let i = 0; i < serials.length; i++) {
+    if (!serials[i].value.trim() || !repairs[i].value.trim()) {
+      alert("All serials and repair codes are required");
+      submitBtn.disabled = false;
+      return;
+    }
+  }
 
-  const dataToSend = {
+  const data = {
     brmEmail: email,
     brmName: brmName.value,
     terminals: Array.from(serials).map((s, i) => ({
-      serial: s.value,
-      repairCode: repairs[i].value
+      serial: s.value.toUpperCase(),
+      repairCode: repairs[i].value.toUpperCase()
     })),
-    batteryConfirmed: document.getElementById("agree").checked
+    batteryConfirmed: agree.checked,
+    timestamp: new Date().toLocaleString()
   };
 
-  fetch("https://script.google.com/macros/s/AKfycbx-M4OLqycVHbFrM6MDD1REm8nKzrhLmEhNR5flMGHpFGoYgSXbS12u2ceENbSc5K3a/exec", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(dataToSend)
+  try {
+    const res = await fetch(
+      "https://script.google.com/macros/s/AKfycbzDy3qlALtQ33OlmeP3lQU_R8_eE-HRXSmgqGzgBPiRDa5TxQ_PAkzwUn8NdlOrTRecjw/exec",
+      {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+      }
+    );
+
+    const result = await res.json();
+    if (!result.success) throw "Sheet error";
+
+  } catch {
+    alert("Submission failed. Try again.");
+    submitBtn.disabled = false;
+    return;
+  }
+
+  form.style.display = "none";
+  success.style.display = "block";
+
+  let terminalText = "";
+  data.terminals.forEach(t => {
+    terminalText += `• ${t.serial} (${t.repairCode})\n`;
   });
 
-  removalForm.style.display = "none";
-  successMsg.style.display = "block";
+  const msg = encodeURIComponent(
+`TERMINAL REMOVAL REQUEST
 
-  const whatsappText = encodeURIComponent(`
-TERMINAL REMOVAL REQUEST
-
-BRM Name: ${brmName.value}
-BRM Email: ${email}
+BRM: ${data.brmName}
+Email: ${email}
 
 TERMINALS:
-${terminalList}
+${terminalText}
 
-Battery Confirmation: YES
-`);
+Battery Confirmed: ${data.batteryConfirmed ? "YES" : "NO"}`
+  );
 
   setTimeout(() => {
-    window.open(`https://wa.me/2348135341447?text=${whatsappText}`, "_blank");
-    removalForm.reset();
-    brmName.value = "";
-    serialContainer.innerHTML = `
-      <div class="serial-card">
-        <input type="text" class="serial" placeholder="Serial Number" required>
-        <input type="text" class="repair" placeholder="Sub Repair Code" required>
-        <button type="button" class="removeSerial">X</button>
-      </div>
-    `;
-    removalForm.style.display = "block";
-    successMsg.style.display = "none";
-  }, 2000);
-});
+    window.open(`https://wa.me/2348135341447?text=${msg}`, "_blank");
+    location.reload();
+  }, 2500);
+};
 </script>
 
 </body>
