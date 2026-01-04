@@ -183,6 +183,7 @@ const serialContainer = document.getElementById("serialContainer");
 const addSerialBtn = document.getElementById("addSerialBtn");
 const removalForm = document.getElementById("removalForm");
 const successMsg = document.getElementById("successMsg");
+const agree = document.getElementById("agree"); // ✅ FIX
 
 brmEmail.addEventListener("input", () => {
   brmName.value = brmDirectory[brmEmail.value.toLowerCase()] || "";
@@ -199,8 +200,10 @@ addSerialBtn.onclick = () => {
 };
 
 serialContainer.onclick = e => {
-  if (e.target.classList.contains("removeSerial") &&
-      document.querySelectorAll(".serial").length > 1) {
+  if (
+    e.target.classList.contains("removeSerial") &&
+    document.querySelectorAll(".serial").length > 1
+  ) {
     e.target.parentElement.remove();
   }
 };
@@ -208,34 +211,44 @@ serialContainer.onclick = e => {
 removalForm.onsubmit = async e => {
   e.preventDefault();
 
-  if (!brmDirectory[brmEmail.value.toLowerCase()]) {
+  const email = brmEmail.value.toLowerCase();
+  if (!brmDirectory[email]) {
     alert("Invalid BRM email");
     return;
   }
 
+  const serials = document.querySelectorAll(".serial");
+  const repairs = document.querySelectorAll(".repair");
+
   const data = {
-    brmEmail: brmEmail.value,
+    brmEmail: email,
     brmName: brmName.value,
     batteryConfirmed: agree.checked,
-    terminals: [...document.querySelectorAll(".serial")].map((s,i)=>({
+    terminals: Array.from(serials).map((s, i) => ({
       serial: s.value,
-      repairCode: document.querySelectorAll(".repair")[i].value
+      repairCode: repairs[i].value
     }))
   };
 
-  await fetch(GOOGLE_SCRIPT_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
+  try {
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
 
-  removalForm.style.display = "none";
-  successMsg.style.display = "block";
+    removalForm.style.display = "none";
+    successMsg.style.display = "block";
 
-  setTimeout(() => {
-    window.open(`https://wa.me/2348135341447`, "_blank");
-    location.reload();
-  }, 2000);
+    setTimeout(() => {
+      window.open("https://wa.me/2348135341447", "_blank");
+      location.reload();
+    }, 2000);
+
+  } catch (err) {
+    alert("Submission failed. Check console.");
+    console.error(err);
+  }
 };
 </script>
 
