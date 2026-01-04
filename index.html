@@ -183,13 +183,15 @@ const serialContainer = document.getElementById("serialContainer");
 const addSerialBtn = document.getElementById("addSerialBtn");
 const removalForm = document.getElementById("removalForm");
 const successMsg = document.getElementById("successMsg");
-const agree = document.getElementById("agree"); // ✅ FIX
+const agree = document.getElementById("agree"); // ✅ Added this
 
+// Auto-fill BRM Name
 brmEmail.addEventListener("input", () => {
   brmName.value = brmDirectory[brmEmail.value.toLowerCase()] || "";
 });
 
-addSerialBtn.onclick = () => {
+// Add new terminal row
+addSerialBtn.addEventListener("click", () => {
   serialContainer.insertAdjacentHTML("beforeend", `
     <div class="serial-card">
       <input type="text" class="serial" placeholder="Serial Number" required>
@@ -197,36 +199,32 @@ addSerialBtn.onclick = () => {
       <button type="button" class="removeSerial">X</button>
     </div>
   `);
-};
+});
 
-serialContainer.onclick = e => {
-  if (
-    e.target.classList.contains("removeSerial") &&
-    document.querySelectorAll(".serial").length > 1
-  ) {
+// Remove terminal row
+serialContainer.addEventListener("click", e => {
+  if (e.target.classList.contains("removeSerial") &&
+      document.querySelectorAll(".serial").length > 1) {
     e.target.parentElement.remove();
   }
-};
+});
 
-removalForm.onsubmit = async e => {
+// Form submit
+removalForm.addEventListener("submit", async e => {
   e.preventDefault();
 
-  const email = brmEmail.value.toLowerCase();
-  if (!brmDirectory[email]) {
+  if (!brmDirectory[brmEmail.value.toLowerCase()]) {
     alert("Invalid BRM email");
     return;
   }
 
-  const serials = document.querySelectorAll(".serial");
-  const repairs = document.querySelectorAll(".repair");
-
   const data = {
-    brmEmail: email,
+    brmEmail: brmEmail.value,
     brmName: brmName.value,
     batteryConfirmed: agree.checked,
-    terminals: Array.from(serials).map((s, i) => ({
+    terminals: [...document.querySelectorAll(".serial")].map((s,i)=>({
       serial: s.value,
-      repairCode: repairs[i].value
+      repairCode: document.querySelectorAll(".repair")[i].value
     }))
   };
 
@@ -236,20 +234,20 @@ removalForm.onsubmit = async e => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
     });
-
-    removalForm.style.display = "none";
-    successMsg.style.display = "block";
-
-    setTimeout(() => {
-      window.open("https://wa.me/2348135341447", "_blank");
-      location.reload();
-    }, 2000);
-
   } catch (err) {
-    alert("Submission failed. Check console.");
-    console.error(err);
+    console.error("Error sending data:", err);
+    alert("Failed to submit. Check console.");
+    return;
   }
-};
+
+  removalForm.style.display = "none";
+  successMsg.style.display = "block";
+
+  setTimeout(() => {
+    window.open(`https://wa.me/2348135341447`, "_blank");
+    location.reload();
+  }, 2000);
+});
 </script>
 
 </body>
