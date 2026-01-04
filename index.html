@@ -171,8 +171,6 @@ button[type="submit"] {
 </div>
 
 <script>
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfgwHJ-5G-bauvmyMggakPMTn_BWjJo4LS-ug-V8ddn2Ov2eCeyLcy6nJl-tO--9Za/exec";
-
 const brmDirectory = {
   "cyprian.christopher@moniepoint.com": "CHRISTOPHER CYPRIAN ISIOMA"
 };
@@ -183,7 +181,7 @@ const serialContainer = document.getElementById("serialContainer");
 const addSerialBtn = document.getElementById("addSerialBtn");
 const removalForm = document.getElementById("removalForm");
 const successMsg = document.getElementById("successMsg");
-const agree = document.getElementById("agree"); // ✅ Added this
+const agree = document.getElementById("agree");
 
 // Auto-fill BRM Name
 brmEmail.addEventListener("input", () => {
@@ -209,8 +207,8 @@ serialContainer.addEventListener("click", e => {
   }
 });
 
-// Form submit
-removalForm.addEventListener("submit", async e => {
+// Form submit (NO GOOGLE SHEET)
+removalForm.addEventListener("submit", e => {
   e.preventDefault();
 
   if (!brmDirectory[brmEmail.value.toLowerCase()]) {
@@ -218,33 +216,11 @@ removalForm.addEventListener("submit", async e => {
     return;
   }
 
-  const data = {
-    brmEmail: brmEmail.value,
-    brmName: brmName.value,
-    batteryConfirmed: agree.checked,
-    terminals: [...document.querySelectorAll(".serial")].map((s,i)=>({
-      serial: s.value,
-      repairCode: document.querySelectorAll(".repair")[i].value
-    }))
-  };
-
-  try {
-    await fetch(GOOGLE_SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
-  } catch (err) {
-    console.error("Error sending data:", err);
-    alert("Failed to submit. Check console.");
-    return;
-  }
-
   removalForm.style.display = "none";
   successMsg.style.display = "block";
 
   setTimeout(() => {
-    window.open(`https://wa.me/2348135341447`, "_blank");
+    window.open("https://wa.me/2348135341447", "_blank");
     location.reload();
   }, 2000);
 });
