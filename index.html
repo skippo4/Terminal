@@ -207,22 +207,49 @@ serialContainer.addEventListener("click", e => {
   }
 });
 
-// Form submit (NO GOOGLE SHEET)
+// Submit → WhatsApp
 removalForm.addEventListener("submit", e => {
   e.preventDefault();
 
-  if (!brmDirectory[brmEmail.value.toLowerCase()]) {
+  const email = brmEmail.value.toLowerCase();
+
+  if (!brmDirectory[email]) {
     alert("Invalid BRM email");
     return;
   }
 
+  // Build terminal list
+  let terminalList = "";
+  document.querySelectorAll(".serial").forEach((serialInput, i) => {
+    const repairInput = document.querySelectorAll(".repair")[i];
+    terminalList += `${i + 1}. Serial: ${serialInput.value}\n   Repair Code: ${repairInput.value}\n\n`;
+  });
+
+  // WhatsApp message
+  const message = `
+TERMINAL REMOVAL REQUEST
+
+BRM Name: ${brmName.value}
+BRM Email: ${brmEmail.value}
+
+TERMINALS:
+${terminalList}
+Battery Confirmed: ${agree.checked ? "YES" : "NO"}
+  `.trim();
+
+  const whatsappURL =
+    "https://wa.me/2348135341447?text=" +
+    encodeURIComponent(message);
+
+  // Show success UI
   removalForm.style.display = "none";
   successMsg.style.display = "block";
 
+  // Open WhatsApp
   setTimeout(() => {
-    window.open("https://wa.me/2348135341447", "_blank");
+    window.open(whatsappURL, "_blank");
     location.reload();
-  }, 2000);
+  }, 1500);
 });
 </script>
 
