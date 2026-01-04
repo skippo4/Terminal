@@ -50,7 +50,6 @@ input[type="text"] {
   margin-bottom: 10px;
   border-radius: 6px;
   border: 1px solid #ccc;
-  font-size: 14px;
 }
 
 .serial-card {
@@ -61,12 +60,9 @@ input[type="text"] {
   border-radius: 8px;
   background: #f9f9f9;
   border: 1px solid #ccc;
-  align-items: center;
 }
 
-.serial-card input {
-  flex: 1;
-}
+.serial-card input { flex: 1; }
 
 .removeSerial {
   background: var(--danger-red);
@@ -94,7 +90,6 @@ input[type="text"] {
   gap: 8px;
   font-size: 14px;
   margin-bottom: 15px;
-  align-items: center;
 }
 
 button[type="submit"] {
@@ -105,15 +100,35 @@ button[type="submit"] {
   border: none;
   border-radius: 6px;
   font-size: 16px;
-  cursor: pointer;
 }
 
+/* SUCCESS ANIMATION */
 .success {
   display: none;
-  padding: 20px;
   text-align: center;
-  font-weight: bold;
-  color: var(--success-green);
+  padding: 30px 20px;
+}
+
+.checkmark {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: var(--success-green);
+  margin: 0 auto 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pop 0.4s ease-out;
+}
+
+.checkmark span {
+  color: #fff;
+  font-size: 36px;
+}
+
+@keyframes pop {
+  0% { transform: scale(0.3); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 </style>
 </head>
@@ -122,7 +137,7 @@ button[type="submit"] {
 
 <div class="form-container">
   <div class="form-header">
-    <img src="log.png" class="logo">
+    <img src="log.png" class="logo" alt="Logo">
     <h2>Terminal Removal Request</h2>
     <p>Complete the Form</p>
   </div>
@@ -143,38 +158,23 @@ button[type="submit"] {
 
     <div class="checkbox-group">
       <input type="checkbox" id="agree" required>
-      <label for="agree">
-        I agree that every terminal/terminals is/are with battery/batteries
-      </label>
+      <label for="agree">I confirm all terminals have batteries</label>
     </div>
 
     <button type="submit">Submit</button>
   </form>
 
   <div class="success" id="successMsg">
-    ✅ Submission successful! Redirecting…
+    <div class="checkmark"><span>✓</span></div>
+    <p>Submission Successful</p>
   </div>
 </div>
 
 <script>
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfgwHJ-5G-bauvmyMggakPMTn_BWjJo4LS-ug-V8ddn2Ov2eCeyLcy6nJl-tO--9Za/exec";
+
 const brmDirectory = {
-  "opeyemi.obafemi@moniepoint.com": "Obafemi Opeyemi Adoga",
-  "ismaila.gulloma@moniepoint.com": "GULLOMA ISMAILA MUSA",
-  "mohammed.tukur@moniepoint.com": "MOHAMMED TUKUR",
-  "ejimofor.jibeze@moniepoint.com": "JIBEZE EJIMOFOR MICHAEL",
-  "kizito.ugwa@moniepoint.com": "UGWA KIZITO KENNEDY",
-  "grace.ekwere@moniepoint.com": "EKWERE GRACE SIMEON",
-  "cyprian.christopher@moniepoint.com": "CHRISTOPHER CYPRIAN ISIOMA",
-  "alfred.edimeh@moniepoint.com": "EDIMEH ALFRED MUSA",
-  "saminu.usman@moniepoint.com": "USMAN SAMINU",
-  "taofeek.suleiman@moniepoint.com": "SULEIMAN TAOFEEK",
-  "favour.nwobodo@moniepoint.com": "NWOBODO FAVOUR ANNABEL",
-  "ridwan.abiola@moniepoint.com": "AWORINDE RIDWAN ABIOLA",
-  "saidu.bala@moniepoint.com": "Haruna Habibu",
-  "jibril.abdullahi@moniepoint.com": "ABDULLAHI JIBRIL",
-  "godswill.charles@moniepoint.com": "Charles Godswill Francis",
-  "rosemary.john@moniepoint.com": "JOHN Rosemary",
-  "kabiru.adamu@moniepoint.com": "BALA Abdullahi"
+  "cyprian.christopher@moniepoint.com": "CHRISTOPHER CYPRIAN ISIOMA"
 };
 
 const brmEmail = document.getElementById("brmEmail");
@@ -188,88 +188,55 @@ brmEmail.addEventListener("input", () => {
   brmName.value = brmDirectory[brmEmail.value.toLowerCase()] || "";
 });
 
-addSerialBtn.addEventListener("click", () => {
-  const div = document.createElement("div");
-  div.className = "serial-card";
-  div.innerHTML = `
-    <input type="text" class="serial" placeholder="Serial Number" required>
-    <input type="text" class="repair" placeholder="Sub Repair Code" required>
-    <button type="button" class="removeSerial">X</button>
-  `;
-  serialContainer.appendChild(div);
-});
+addSerialBtn.onclick = () => {
+  serialContainer.insertAdjacentHTML("beforeend", `
+    <div class="serial-card">
+      <input type="text" class="serial" placeholder="Serial Number" required>
+      <input type="text" class="repair" placeholder="Repair Code" required>
+      <button type="button" class="removeSerial">X</button>
+    </div>
+  `);
+};
 
-serialContainer.addEventListener("click", e => {
-  if (e.target.classList.contains("removeSerial")) {
-    if (document.querySelectorAll(".serial").length > 1) {
-      e.target.parentElement.remove();
-    }
+serialContainer.onclick = e => {
+  if (e.target.classList.contains("removeSerial") &&
+      document.querySelectorAll(".serial").length > 1) {
+    e.target.parentElement.remove();
   }
-});
+};
 
-removalForm.addEventListener("submit", e => {
+removalForm.onsubmit = async e => {
   e.preventDefault();
 
-  const email = brmEmail.value.toLowerCase();
-  if (!brmDirectory[email]) {
-    alert("Please enter a registered BRM email.");
+  if (!brmDirectory[brmEmail.value.toLowerCase()]) {
+    alert("Invalid BRM email");
     return;
   }
 
-  const serials = document.querySelectorAll(".serial");
-  const repairs = document.querySelectorAll(".repair");
-
-  let terminalList = "";
-  serials.forEach((s, i) => {
-    terminalList += `• Serial: ${s.value}\n  Repair Code: ${repairs[i].value}\n\n`;
-  });
-
-  const dataToSend = {
-    brmEmail: email,
+  const data = {
+    brmEmail: brmEmail.value,
     brmName: brmName.value,
-    terminals: Array.from(serials).map((s, i) => ({
+    batteryConfirmed: agree.checked,
+    terminals: [...document.querySelectorAll(".serial")].map((s,i)=>({
       serial: s.value,
-      repairCode: repairs[i].value
-    })),
-    batteryConfirmed: document.getElementById("agree").checked
+      repairCode: document.querySelectorAll(".repair")[i].value
+    }))
   };
 
-  fetch("https://script.google.com/macros/s/AKfycbx-M4OLqycVHbFrM6MDD1REm8nKzrhLmEhNR5flMGHpFGoYgSXbS12u2ceENbSc5K3a/exec", {
+  await fetch(GOOGLE_SCRIPT_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(dataToSend)
+    body: JSON.stringify(data)
   });
 
   removalForm.style.display = "none";
   successMsg.style.display = "block";
 
-  const whatsappText = encodeURIComponent(`
-TERMINAL REMOVAL REQUEST
-
-BRM Name: ${brmName.value}
-BRM Email: ${email}
-
-TERMINALS:
-${terminalList}
-
-Battery Confirmation: YES
-`);
-
   setTimeout(() => {
-    window.open(`https://wa.me/2348135341447?text=${whatsappText}`, "_blank");
-    removalForm.reset();
-    brmName.value = "";
-    serialContainer.innerHTML = `
-      <div class="serial-card">
-        <input type="text" class="serial" placeholder="Serial Number" required>
-        <input type="text" class="repair" placeholder="Sub Repair Code" required>
-        <button type="button" class="removeSerial">X</button>
-      </div>
-    `;
-    removalForm.style.display = "block";
-    successMsg.style.display = "none";
+    window.open(`https://wa.me/2348135341447`, "_blank");
+    location.reload();
   }, 2000);
-});
+};
 </script>
 
 </body>
